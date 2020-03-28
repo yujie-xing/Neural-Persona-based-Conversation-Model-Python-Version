@@ -18,19 +18,19 @@ Please go to "https://github.com/jiweil/Neural-Dialogue-Generation" for the proc
 
 Similar to the original Lua codes, run
 
-    python train.py
+    python train.py --(optional parameter)
 
-The parameters could be changed in params.py.
+The parameters could be checked in train.py.
 
-After training, trained models are stored in /save.
+After training, trained models are stored in /save/testing.
 
 # Decode
 
 Similar to the original Lua codes, run
 
-    python decode.py
+    python decode.py --(optional parameter)
 
-The parameters could be changed in decode_params.py.
+The parameters could be checked in decode.py.
 
 After decoding, the outputs are stored in /outputs.
 
