@@ -3,7 +3,6 @@ import argparse
 
 parser = argparse.ArgumentParser()
 
-
 parser.add_argument('--data_folder', type=str, default='data/testing',
 					help='the folder that contains your dataset and vocabulary file')
 parser.add_argument('--train_file', type=str, default='train.txt')
@@ -24,8 +23,8 @@ parser.add_argument('--special_word', type=int, default=3,
 parser.add_argument('--fine_tuning', action='store_true')
 parser.add_argument('--fine_tunine_model', type=str, default='model')
 
-parser.add_argument('--SpeakerNum', type=int, default=2)
-parser.add_argument('--PersonaMode', action='store_true')
+parser.add_argument('--PersonaNum', type=int, default=2)
+parser.add_argument('--SpeakerMode', action='store_true')
 parser.add_argument('--AddresseeMode', action='store_true')
 
 parser.add_argument("--batch_size", type=int, default=256)

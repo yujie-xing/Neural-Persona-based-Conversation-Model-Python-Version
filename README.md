@@ -1,6 +1,6 @@
 # Neural-Persona-based-Conversation-Model-Python-Version
 
-This code is a python re-implementation of the persona-based neural conversation model proposed by Jiwei Li, Michel Galley, Chris Brockett, Georgios P. Spithourakis, Jianfeng Gao, Bill Dolan:
+This code is a PyTorch re-implementation of the persona-based neural conversation model proposed by Jiwei Li, Michel Galley, Chris Brockett, Georgios P. Spithourakis, Jianfeng Gao, Bill Dolan:
 
 J.Li, M.Galley, C.Brockett, J.Gao and B.Dolan. "[A persona-based neural conversation model](https://arxiv.org/pdf/1603.06155.pdf)". ACL2016.
 

@@ -16,7 +16,7 @@ parser.add_argument('--output_file', type=str, default='output.txt')
 
 parser.add_argument('--cpu', action='store_true')
 
-# parser.add_argument('--PersonaMode', action='store_true')
+# parser.add_argument('--SpeakerMode', action='store_true')
 # parser.add_argument('--AddresseeMode', action='store_true')
 parser.add_argument('--SpeakerId', type=int, default=1)
 parser.add_argument('--AddresseeId', type=int, default=2)
@@ -39,3 +39,4 @@ print()
 if __name__ == '__main__':
 	model = decode_model(args)
 	model.decode()
+	# model.test()

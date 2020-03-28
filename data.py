@@ -8,7 +8,7 @@ import linecache
 
 class data:
 
-	# Assume the data is of this form: SpeakerNum Text|AddresseeNum Text
+	# Assume the data is of this form: SpeakerId Text|AddresseeId Text
 	
 	def __init__(self, params, voc):
 		self.params = params
@@ -74,7 +74,7 @@ class data:
 				speaker_label[i]=int(s[0])-1
 				addressee_label[i]=int(t[0])-1
 			except:
-				print('Speaker id cannot be transferred to numbers')
+				print('Persona id cannot be transferred to numbers')
 			i+=1
 
 		max_l_s=max(l_s_set)

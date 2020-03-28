@@ -53,10 +53,11 @@ class lstm_source(nn.Module):
 		super(lstm_source, self).__init__()
 		dim = params.dimension
 		layer = params.layers
-		dropout = params.dropout
-		self.lstms=nn.LSTM(dim,dim,num_layers=layer,batch_first=True,bias=False,dropout=dropout)
+		self.dropout = nn.Dropout(p=params.dropout)
+		self.lstms=nn.LSTM(dim,dim,num_layers=layer,batch_first=True,bias=False,dropout=params.dropout)
 
 	def forward(self,embedding,length):
+		embedding = self.dropout(embedding)
 		packed=pack_padded_sequence(embedding,length,batch_first=True,enforce_sorted=False)
 		packed_output,(h,c)=self.lstms(packed)
 		context,_= pad_packed_sequence(packed_output,batch_first=True)
@@ -70,33 +71,42 @@ class lstm_target(nn.Module):
 		
 		dim = params.dimension
 		layer = params.layers
-		dropout = params.dropout
-		self.persona = params.PersonaMode
+		self.dropout = nn.Dropout(p=params.dropout)
+		self.speaker = params.SpeakerMode
 		self.addressee = params.AddresseeMode
-		p_num = params.SpeakerNum
+		persona_num = params.PersonaNum
 		
-		if self.persona:
-			self.persona_embedding=nn.Embedding(p_num,dim)
-			self.lstmt=nn.LSTM(dim*3,dim,num_layers=layer,batch_first=True,bias=False,dropout=dropout)
+		if self.speaker:
+			self.persona_embedding=nn.Embedding(persona_num,dim)
+			self.lstmt=nn.LSTM(dim*3,dim,num_layers=layer,batch_first=True,bias=False,dropout=params.dropout)
 		elif self.addressee:
-			self.persona_embedding=nn.Embedding(p_num,dim)
-			self.lstmt=nn.LSTM(dim*4,dim,num_layers=layer,batch_first=True,bias=False,dropout=dropout)
+			self.persona_embedding=nn.Embedding(persona_num,dim)
+			self.speaker_linear = nn.Linear(dim,dim)
+			self.addressee_linear = nn.Linear(dim,dim)
+			self.lstmt=nn.LSTM(dim*3,dim,num_layers=layer,batch_first=True,bias=False,dropout=params.dropout)
 		else:
-			self.lstmt=nn.LSTM(dim*2,dim,num_layers=layer,batch_first=True,bias=False,dropout=dropout)
+			self.lstmt=nn.LSTM(dim*2,dim,num_layers=layer,batch_first=True,bias=False,dropout=params.dropout)
 		self.atten_feed=attention_feed()
 		self.soft_atten=softattention(params)
 		
 	def forward(self,context,h,c,embedding,speaker_label,addressee_label):
+		embedding = self.dropout(embedding)
+		h = self.dropout(h)
 		context1=self.atten_feed(h[-1],context)
+		context1 = self.dropout(context1)
 		lstm_input=torch.cat((embedding,context1),-1)
-		if self.persona:
+		if self.speaker:
 			speaker_embed=self.persona_embedding(speaker_label)
+			speaker_embed = self.dropout(speaker_embed)
 			lstm_input=torch.cat((lstm_input,speaker_embed),-1)
 		elif self.addressee:
 			speaker_embed=self.persona_embedding(speaker_label)
+			speaker_embed = self.dropout(speaker_embed)
 			addressee_embed=self.persona_embedding(addressee_label)
-			lstm_input=torch.cat((lstm_input,speaker_embed),-1)
-			lstm_input=torch.cat((lstm_input,addressee_embed),-1)
+			addressee_embed = self.dropout(addressee_embed)
+			combined_embed = self.speaker_linear(speaker_embed) + self.addressee_linear(addressee_embed)
+			combined_embed = nn.Tanh()(combined_embed)
+			lstm_input=torch.cat((lstm_input,combined_embed),-1)
 		_,(h,c)=self.lstmt(lstm_input.unsqueeze(1),(h,c))
 		pred=self.soft_atten(h[-1],context)
 		return pred,h,c
@@ -163,7 +173,7 @@ class persona:
 		if self.output!="":
 			with open(self.output,"w") as selfoutput:
 				selfoutput.write("")
-		if self.params.PersonaMode:
+		if self.params.SpeakerMode:
 			print("training in speaker mode")
 		elif self.params.AddresseeMode:
 			print("training in speaker-addressee mode")
@@ -190,7 +200,6 @@ class persona:
 		END=0
 		batch_n=0
 		while END==0:
-			self.Model.eval()
 			END,sources,targets,speaker_label,addressee_label,length,token_num,origin = self.Data.read_batch(open_train_file,batch_n)
 			batch_n+=1
 			if sources is None:
@@ -201,6 +210,7 @@ class persona:
 			addressee_label=addressee_label.to(self.device)
 			length=length.to(self.device)
 			total_tokens+=token_num
+			self.Model.eval()
 			with torch.no_grad():
 				loss = self.Model(sources,targets,length,speaker_label,addressee_label)
 				total_loss+=loss.item()
@@ -244,7 +254,7 @@ class persona:
 		if not self.params.no_save:
 			self.saveParams()
 		if self.params.fine_tuning:
-			if self.params.PersonaMode or self.params.AddresseeMode:
+			if self.params.SpeakerMode or self.params.AddresseeMode:
 				re_random_weights = ['decoder.persona_embedding.weight'] # Also have to include some layers of the LSTM module...
 			else:
 				re_random_weights = None
@@ -267,7 +277,6 @@ class persona:
 			batch_n=0
 			while END==0:
 				self.Model.zero_grad()
-				self.Model.train()
 				END,sources,targets,speaker_label,addressee_label,length,_,_ = self.Data.read_batch(open_train_file,batch_n)
 				batch_n+=1
 				if sources is None:
@@ -278,6 +287,7 @@ class persona:
 				addressee_label=addressee_label.to(self.device)
 				length=length.to(self.device)
 				self.source_size = sources.size(0)
+				self.Model.train()
 				loss = self.Model(sources,targets,length,speaker_label,addressee_label)
 				loss.backward()
 				self.update()

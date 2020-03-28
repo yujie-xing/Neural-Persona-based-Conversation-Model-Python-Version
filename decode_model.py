@@ -106,7 +106,7 @@ class decode_model(persona):
 			vars(adapted_params)[key] = vars(params)[key]
 		adapted_params.dev_file = adapted_params.decode_file
 		self.params=adapted_params
-		if self.params.PersonaMode:
+		if self.params.SpeakerMode:
 			print("decoding in speaker mode")
 		elif self.params.AddresseeMode:
 			print("decoding in speaker-addressee mode")
@@ -154,7 +154,7 @@ class decode_model(persona):
 		self.mode="decode"
 		open_train_file = path.join(self.params.data_folder,self.params.decode_file)
 
-		if self.params.PersonaMode:
+		if self.params.SpeakerMode:
 			decode_output = path.join(self.params.output_folder,
 							self.params.decode_file+"_S"+str(self.params.SpeakerId)+"_"+self.params.output_file)
 		elif self.params.AddresseeMode:
