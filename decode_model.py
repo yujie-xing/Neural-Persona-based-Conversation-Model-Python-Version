@@ -187,6 +187,7 @@ class decode_model(persona):
 			length=length.to(self.device)
 			self.origin = origin
 			self.source_size = sources.size(0)
+			self.Model.eval()
 			with torch.no_grad():
 				completed_history = self.Model(sources,targets,length,speaker_label,addressee_label,self.mode)
 			self.OutPut(decode_output,completed_history)
