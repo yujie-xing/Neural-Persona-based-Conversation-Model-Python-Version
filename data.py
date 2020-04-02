@@ -50,7 +50,7 @@ class data:
 			i-=a
 			if line == ['']:
 				END = 1
-				return END,None,None,None,None,None,None,None
+				break
 			s = line[-2].split()[:self.params.source_max_length]
 			t = line[-1].split()[:self.params.target_max_length]
 			if s[1:]==[]:
@@ -77,8 +77,11 @@ class data:
 				print('Persona id cannot be transferred to numbers')
 			i+=1
 
-		max_l_s=max(l_s_set)
-		max_l_t=max(l_t_set)
+		try:
+			max_l_s=max(l_s_set)
+			max_l_t=max(l_t_set)
+		except ValueError:
+			return END,None,None,None,None,None,None,None
 
 		if max_l_s == 0:
 			return END,None,None,None,None,None,None,None

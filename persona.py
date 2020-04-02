@@ -135,7 +135,7 @@ class lstm(nn.Module):
 		w=torch.ones(vocab_num)
 		if not params.cpu:
 			w = w.cuda()
-		w[:2]=0
+		w[:self.EOT]=0
 		w[self.UNK]=0
 		self.loss_function=torch.nn.CrossEntropyLoss(w, ignore_index=0, reduction='sum')
 
@@ -214,7 +214,6 @@ class persona:
 			with torch.no_grad():
 				loss = self.Model(sources,targets,length,speaker_label,addressee_label)
 				total_loss+=loss.item()
-		print(list(self.Model.decoder.persona_embedding.parameters())[0][1,:10])
 		print("perp "+str((1/math.exp(-total_loss/total_tokens))))
 		if self.output!="":
 			with open(self.output,"a") as selfoutput:
