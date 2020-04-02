@@ -170,12 +170,12 @@ class decode_model(persona):
 		n_decode_instance=0
 		while END==0:
 			END,sources,targets,speaker_label,addressee_label,length,token_num,origin = self.Data.read_batch(open_train_file,batch_n,self.mode)
-			if sources is None:
-				break
 			batch_n+=1
 			n_decode_instance += sources.size(0)
 			if self.params.max_decoding_number != 0 and n_decode_instance >= self.params.max_decoding_number:
 				break
+			if sources is None:
+				continue
 			speaker_label.fill_(self.params.SpeakerId-1)
 			addressee_label.fill_(self.params.AddresseeId-1)
 			sources=sources.to(self.device)

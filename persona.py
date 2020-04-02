@@ -203,7 +203,7 @@ class persona:
 			END,sources,targets,speaker_label,addressee_label,length,token_num,origin = self.Data.read_batch(open_train_file,batch_n)
 			batch_n+=1
 			if sources is None:
-				break
+				continue
 			sources=sources.to(self.device)
 			targets=targets.to(self.device)
 			speaker_label=speaker_label.to(self.device)
@@ -280,7 +280,7 @@ class persona:
 				END,sources,targets,speaker_label,addressee_label,length,_,_ = self.Data.read_batch(open_train_file,batch_n)
 				batch_n+=1
 				if sources is None:
-					break
+					continue
 				sources=sources.to(self.device)
 				targets=targets.to(self.device)
 				speaker_label=speaker_label.to(self.device)
