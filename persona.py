@@ -214,6 +214,7 @@ class persona:
 			with torch.no_grad():
 				loss = self.Model(sources,targets,length,speaker_label,addressee_label)
 				total_loss+=loss.item()
+		print(list(self.Model.decoder.persona_embedding.parameters())[0][1,:10])
 		print("perp "+str((1/math.exp(-total_loss/total_tokens))))
 		if self.output!="":
 			with open(self.output,"a") as selfoutput:
