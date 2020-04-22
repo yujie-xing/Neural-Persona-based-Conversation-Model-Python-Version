@@ -77,6 +77,7 @@ class lstm_decoder(lstm):
 				pred=self.softlinear(pred)
 				pred=nn.LogSoftmax(dim=1)(pred)
 				prob_k,beam_k = torch.topk(pred,self.params.beam_size,1,True,False)
+				prob_k *= (beamHistory[:,k]!=self.EOT).all(dim=1).unsqueeze(1).float()
 				prob_k += probTable[:,k].unsqueeze(1)
 				beam_k = torch.cat((beamHistory[:,k].unsqueeze(1).expand(beamHistory.size()),
 						beam_k.unsqueeze(2)),2)
