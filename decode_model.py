@@ -67,14 +67,24 @@ class lstm_decoder(lstm):
 		 
 		pred,h,c=self.decoder(context,h,c,start,speaker_label,addressee_label)
 		pred=self.softlinear(pred)
+		if not self.params.allowUNK:
+			pred[:,self.UNK].fill_(-1e9)
 		pred=nn.LogSoftmax(dim=1)(pred)
 		probTable,beamHistory = torch.topk(pred,self.params.beam_size,1,True,False)
 		beamHistory = beamHistory.unsqueeze(2)
 
 		for i in range(1,self.params.max_decoding_length):
 			for k in range(self.params.beam_size):
-				pred,h,c=self.decoder(context,h,c,self.tembed(beamHistory[:,k,-1]),speaker_label,addressee_label)
+				try:
+					hc_index = (index/self.params.beam_size)[:,k]
+					h = h_list[:,torch.arange(hc_index.size(0)),hc_index,:]
+					c = c_list[:,torch.arange(hc_index.size(0)),hc_index,:]
+				except NameError:
+					pass
+				pred,h1,c1=self.decoder(context,h,c,self.tembed(beamHistory[:,k,-1]),speaker_label,addressee_label)
 				pred=self.softlinear(pred)
+				if not self.params.allowUNK:
+					pred[:,self.UNK].fill_(-1e9)
 				pred=nn.LogSoftmax(dim=1)(pred)
 				prob_k,beam_k = torch.topk(pred,self.params.beam_size,1,True,False)
 				prob_k *= (beamHistory[:,k]!=self.EOT).all(dim=1).unsqueeze(1).float()
@@ -84,15 +94,22 @@ class lstm_decoder(lstm):
 				if k==0:
 					prob = prob_k
 					beam = beam_k
+					hs = h1.unsqueeze(2)
+					cs = c1.unsqueeze(2)
 				else:
 					prob = torch.cat((prob,prob_k),1)
 					beam = torch.cat((beam,beam_k),1)
+					hs = torch.cat((hs,h1.unsqueeze(2)),2)
+					cs = torch.cat((cs,c1.unsqueeze(2)),2)
 			probTable,index = torch.topk(prob,self.params.beam_size,1,True,False)
 			beamHistory = beam[torch.arange(beam.size(0)).view(-1,1).expand(index.size()).contiguous().view(-1),
 						index.view(-1),:].view(index.size(0),index.size(1),beam.size(2))
 
 			if (beamHistory == self.EOT).any(dim=2).all():
 				break
+
+			h_list = hs.clone()
+			c_list = cs.clone()
 
 		predicted_path = torch.argmax(probTable,1)
 
